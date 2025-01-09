@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
-    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" type="text/css" href="{{url_for('static',filename='css/styles.css')}}">
 </head>
 <body>
     <div class="container">
         <div class="form-container">
             <h2>Register</h2>
-            <form action="/register" method="POST">
+            
+            <form action="/" method="POST">
                 <div class="input-group">
                     <label for="register-name">Name</label>
                     <input type="text" id="register-name" name="name" placeholder="Enter your name" required>

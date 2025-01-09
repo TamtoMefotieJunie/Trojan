@@ -1,103 +1,141 @@
-from sqlalchemy import create_engine, select, MetaData, Table, Column, String, Boolean, DateTime, ForeignKey, text
-from sqlalchemy.orm import sessionmaker, declarative_base, relationship
+from sqlalchemy import create_engine, MetaData, Table, Column, String, Boolean, DateTime, ForeignKey
+from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
+import os
+import json
 
-dbPath = 'trojan.db'
-engine = create_engine('sqlite:///%s' % dbPath)
-metadata = MetaData()
+dbPath = os.path.abspath('trojan.db')
 
-# Hacker Table Definition
-HackerTable = Table(
-    'Hacker', metadata,
-    Column('id', String(60), primary_key=True),
-    Column('name', String(60)),
-    Column('email', String(60), unique=True),
-    Column('password', String(255))
-)
+print(f"dbPath: {dbPath}")
 
-class Hacker:
+Base = declarative_base()
+engine = create_engine(f'sqlite:///{dbPath}')
+Session = sessionmaker(bind=engine)
 
-    'table_name' = 'Hacker'
-    def __init__(self, id, name, email, password):
-        self.id = id
-        self.name = name
-        self.email = email
-        self.password = password
+session = Session()
+
+class Hacker(Base): 
+
+    __tablename__ = 'Hacker' 
+
+    id = Column(String(60), primary_key=True, default=lambda: str(uuid.uuid4())) 
+    name = Column(String(60)) 
+    email = Column(String(60), unique=True) 
+    password = Column(String(255)) 
+
+    def check_password(self, password): 
+        return check_password_hash(self.password, password) 
     
-    def _init_(self, id=None, name=None, email=None, password=None):
-        self.id = id or str(uuid.uuid4())  # Auto-generate a UUID if not provided
-        self.name = name
-        self.email = email
-        self.password = password
+    @staticmethod 
+    def create(name, email, password): 
 
-    @staticmethod
-    def create(name, email, password):
+        """Register a new hacker.""" 
+        try: 
+            password_hash = generate_password_hash(password) # Hash the password for security 
 
-        """Register a new hacker."""
+            hacker = Hacker(name=name, email=email, password=password_hash) 
+            Session = sessionmaker(bind=engine) 
+
+            session = Session() 
+            session.add(hacker) 
+            session.commit() 
+
+            print(f'Hacker created: {hacker}') 
+
+            all_hackers = session.query(Hacker).all() 
+
+            print("All Hackers:", [h.__dict__ for h in all_hackers]) 
+
+            return hacker 
         
-        hashed_password = generate_password_hash(password)
-        hacker = {
-            'id': str(uuid.uuid4()),
-            'name': name,
-            'email': email,
-            'password': hashed_password
-        }
-        stmt = HackerTable.insert().values(hacker)
-        with engine.connect() as conn:
-            conn.execute(stmt)
-        return f"Hacker {name} registered successfully."
+        except Exception as e: 
+            print(f"Error creating hacker: {e}") 
+            return None
+        finally:
+            session.close()
+    
+    @staticmethod 
+    def read(hacker_email): 
+
+        """Read a hacker's details by ID.""" 
+        
+        try: 
+             
+            hacker = session.query(Hacker).filter_by(email=hacker_email).first()
+            
+            if hacker: 
+                print(f'Hacker details: {hacker.__dict__}') 
+                return hacker
+            else: 
+                print(f'Hacker with email {hacker_email} not found.') 
+                return None 
+        except Exception as e: print(f"Error reading hacker: {e}")
+        
+        finally:
+            session.close()
 
     @staticmethod
-    def login(email, password):
-        """Log in a hacker by validating their email and password."""
-        with engine.connect() as conn:
-            stmt = HackerTable.select().where(HackerTable.c.email == email)
-            result = conn.execute(stmt).fetchone()
-        if result:
-            stored_password = result['password']
-            if check_password_hash(stored_password, password):
-                return f"Welcome, {result['name']}!"
+    def update(name=None, hacker_email=None, password=None):
+        """
+        Update a hacker's details by ID.
+        """
+        try:
+            
+            # Query for the hacker
+            hacker = session.query(Hacker).filter_by(email=hacker_email).first()
+
+            if hacker:
+                # Update fields if provided
+                if name:
+                    hacker.name = name
+                if hacker_email:
+                    hacker.email = hacker_email
+                if password:
+                    hacker.password = generate_password_hash(password)
+
+                # Commit the updates
+                session.commit()
+
+                print(f"Hacker updated: {hacker}")
+
             else:
-                return "Incorrect password."
-        return "Hacker not found."
+                print(f"Hacker with email {hacker_email} not found.")
+        except Exception as e:
+            session.rollback()
+            print(f"Error updating hacker: {e}")
 
-    @staticmethod
-    def read():
-        """Read all hackers."""
-        with engine.connect() as conn:
-            stmt = HackerTable.select()
-            result = conn.execute(stmt).fetchall()
-        return [dict(row) for row in result]
+        finally:
+            session.close()
 
-    @staticmethod
-    def update(hacker_id, name=None, email=None, password=None):
-        """Update hacker details."""
-        values = {}
-        if name:
-            values['name'] = name
-        if email:
-            values['email'] = email
-        if password:
-            values['password'] = generate_password_hash(password)
-        if values:
-            stmt = HackerTable.update().where(HackerTable.c.id == hacker_id).values(values)
-            with engine.connect() as conn:
-                conn.execute(stmt)
-            return f"Hacker {hacker_id} updated successfully."
-        return "No updates provided."
+    
+    @staticmethod 
+    def delete(hacker_email): 
+        """Delete a hacker by ID.""" 
 
-    @staticmethod
-    def delete(hacker_id):
-        """Delete a hacker."""
-        stmt = HackerTable.delete().where(HackerTable.c.id == hacker_id)
-        with engine.connect() as conn:
-            conn.execute(stmt)
-        return f"Hacker {hacker_id} deleted successfully."
+        try: 
+                        
+            hacker = session.query(Hacker).filter_by(email=hacker_email).first() 
+
+            if hacker: 
+                session.delete(hacker) 
+                session.commit() 
+                print(f'Hacker deleted: {hacker}') 
+
+            else: 
+                print(f'Hacker with email {hacker_email} not found.') 
+                
+        except Exception as e: print(f"Error deleting hacker: {e}")
+        finally:
+            session.close()
+        
+# Create the table 
+Base.metadata.create_all(engine)
 
 class Malware:
     
-    'table_name' = 'Malware'
+    __table_name__ = 'Malware'
+
     instande_id = Column(String, primary_key=True)
     created_at = Column(DateTime)
     status = Column(Boolean, default=False)
@@ -119,17 +157,57 @@ class Malware:
 
 class Data:
     
-    'table_name' = 'Data'
-    data_id = Column(String, primary_key=True)
+    __table_name__ = 'Data'
+
+    data_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     content = Column(String(255))
     source = Column(String(255))
     
     instances = relationship('InstanceData',back_populates='Data')
-    def create():
-        pass
+
+    @staticmethod 
+    def read_from_file(file):
+        file_path = os.path.abspath(file)
+
+        if not file_path:
+            print("File not found.")
+            return
+        
+        """Read data from a file and populate the database.""" 
+        try: 
+            with open(file_path, 'r') as f:
+
+                data_list = json.load(f)
+                print(f"data: {data_list}")
+
+                for data_item in data_list:
+
+                    data = Data( data_id=str(uuid.uuid4()), content=data_item, source=file_path) 
+                    session.add(data) 
+                    session.commit()
+
+                    print(f'Data read from file and added to database.') 
+        except Exception as e: print(f"Error reading from file: {e}")
     
-    def read():
-        pass
+    @staticmethod 
+    def read(): 
+
+        """Read a hacker's details by ID.""" 
+        
+        try: 
+             
+            hacker = session.query(Hacker).filter_by(email=hacker_email).first()
+            
+            if hacker: 
+                print(f'Hacker details: {hacker.__dict__}') 
+                return hacker
+            else: 
+                print(f'Hacker with email {hacker_email} not found.') 
+                return None 
+        except Exception as e: print(f"Error reading hacker: {e}")
+        
+        finally:
+            session.close()
     
     def update():
         pass
@@ -139,7 +217,7 @@ class Data:
 
 class InstanceData():
     
-    'table_name' = 'InstanceData'
+    __table_name__ = 'InstanceData'
 
     malware_id = Column(String, ForeignKey('malware.instance_id'),)
     data_id = Column(String, ForeignKey('data.data_id'))
@@ -149,12 +227,9 @@ class InstanceData():
 
 
     
-Session = sessionmaker(bind=engine)
-session = Session()
-metadata.create_all(engine)
-
-session.add_all()
-session.commit()
+#Session = sessionmaker(bind=engine)
+#session = Session()
+#metadata.create_all(engine)
 
 
 # Command = Table(
@@ -179,41 +254,39 @@ session.commit()
 #     Column('content', String(255))
 # )
 
-
-
-print('enter the attributes of the hacker')
-name = input('name: ')
-email = input('email: ')
-password = input('password: ')
-id = input('id: ')
-Hacker_ins = Hacker.insert().values(name=name, email=email,password=password,id=id)
-print(str(Hacker_ins))
-session.execute(Hacker_ins)
-session.commit()
-result = session.execute(select(Hacker))
-for row in result:
-    print(row)
-result = session.execute(select(Hacker).where(Hacker.c.id == '1'))
-for row in result:
-    print(row)
+# print('enter the attributes of the hacker')
+# name = input('name: ')
+# email = input('email: ')
+# password = input('password: ')
+# id = input('id: ')
+# Hacker_ins = Hacker.insert().values(name=name, email=email,password=password,id=id)
+# print(str(Hacker_ins))
+# session.execute(Hacker_ins)
+# session.commit()
+# result = session.execute(select(Hacker))
+# for row in result:
+#     print(row)
+# result = session.execute(select(Hacker).where(Hacker.c.id == '1'))
+# for row in result:
+#     print(row)
     
-try:
+# try:
    
-    session.commit()
-except Exception as e:
-    print(f"An error occurred: {e}")
-session.commit()
+#     session.commit()
+# except Exception as e:
+#     print(f"An error occurred: {e}")
+# session.commit()
 
-def create():
-    pass
+# def create():
+#     pass
 
-def read():
-    pass
+# def read():
+#     pass
 
-def update():
-    pass
+# def update():
+#     pass
 
-def delete():
-    pass
+# def delete():
+#     pass
 
 
