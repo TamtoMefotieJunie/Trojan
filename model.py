@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
 import os
-import json
+from datetime import datetime
 
 dbPath = os.path.abspath('trojan.db')
 
@@ -128,23 +128,38 @@ class Hacker(Base):
         except Exception as e: print(f"Error deleting hacker: {e}")
         finally:
             session.close()
-        
-# Create the table 
-Base.metadata.create_all(engine)
 
-class Malware:
+
+class InstanceData(Base):
     
-    __table_name__ = 'Malware'
+    __tablename__ = 'InstanceData'
 
-    instande_id = Column(String, primary_key=True)
+    malware_id = Column(String, ForeignKey('Malware.instance_id'),primary_key=True)
+    data_id = Column(String, ForeignKey('Data.data_id'), primary_key=True)
+
+    malware = relationship("Malware", back_populates="instances")
+    data = relationship("Data", back_populates="instances")
+
+
+class Malware(Base):
+    
+    __tablename__ = 'Malware'
+
+    instance_id = Column(String, primary_key=True,default=lambda:str(uuid.uuid4()))
     created_at = Column(DateTime)
-    status = Column(Boolean, default=False)
+    status = Column(String, default='inactive')
 
-    instances = relationship('InstanceData', back_populates = 'Malware')
+    instances = relationship(
+        "InstanceData", 
+        back_populates="malware"
+    )
 
-    
-    def create():
-        pass
+    @classmethod
+    def create(cls):
+        malware = cls(created_at=datetime.today(), status='inactive')
+        session.add(malware)
+        session.commit()
+        return malware
     
     def read():
         pass
@@ -155,57 +170,81 @@ class Malware:
     def delete():
         pass
 
-class Data:
+class Data(Base):
     
-    __table_name__ = 'Data'
+    __tablename__ = 'Data'
 
     data_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     content = Column(String(255))
     source = Column(String(255))
     
-    instances = relationship('InstanceData',back_populates='Data')
+    instances = relationship(
+        "InstanceData", 
+        back_populates="data"
+    )
+
+
+    def __init__(self, data_id=None, content=None, source=None):
+        self.data_id = data_id
+        self.content = content
+        self.source = source
 
     @staticmethod 
-    def read_from_file(file):
-        file_path = os.path.abspath(file)
-
-        if not file_path:
-            print("File not found.")
-            return
+    def read_data_from_file(file):
+        """
+        Purpose: Read stolen data from a file and save it to the Data table.
         
-        """Read data from a file and populate the database.""" 
-        try: 
-            with open(file_path, 'r') as f:
+        Parameters:
+            file (str): Path to the file containing the data to be saved.
+            source (str): Source or description of the data.
+        
+        Returns:
+            dict: Status of the operation.
+        """
+        try:
+            # Resolve absolute file path
+            filePath = os.path.abspath(file)
+            
+            # Read the file content
+            with open(filePath, 'r') as f:
+                content = f.read()
 
-                data_list = json.load(f)
-                print(f"data: {data_list}")
+            # Create a Data object
+            data_entry = Data(
+                data_id=str(uuid.uuid4()),
+                content=content,
+                source=filePath
+            )
+            
+            # Save the data to the database
+            session.add(data_entry)
+            session.commit()
+            
+            print(f"Data saved successfully: {data_entry}")
+            return {"status": "success", "message": "Data saved successfully."}
+        
+        except Exception as e:
+            session.rollback()  # Roll back in case of error
+            print(f"Error saving data: {e}")
+            return {"status": "error", "message": str(e)}
 
-                for data_item in data_list:
-
-                    data = Data( data_id=str(uuid.uuid4()), content=data_item, source=file_path) 
-                    session.add(data) 
-                    session.commit()
-
-                    print(f'Data read from file and added to database.') 
-        except Exception as e: print(f"Error reading from file: {e}")
+        finally:
+            session.close()
     
     @staticmethod 
     def read(): 
 
-        """Read a hacker's details by ID.""" 
+        """Read data""" 
         
-        try: 
-             
-            hacker = session.query(Hacker).filter_by(email=hacker_email).first()
-            
-            if hacker: 
-                print(f'Hacker details: {hacker.__dict__}') 
-                return hacker
-            else: 
-                print(f'Hacker with email {hacker_email} not found.') 
-                return None 
-        except Exception as e: print(f"Error reading hacker: {e}")
-        
+        try:
+            data = session.query(Data).all()  # This returns a list of Data objects
+            if data:
+                return data  # Ensure it's a list of Data objects
+            else:
+                return []  # Return an empty list if no data is found
+        except Exception as e:
+            print(f"Error reading data: {e}")
+            return []  # Return an empty list if an error occurs
         finally:
             session.close()
     
@@ -215,78 +254,15 @@ class Data:
     def delete():
         pass
 
-class InstanceData():
+#lines 237 to 241 are meant for testing Data class
+data = Data()
+read = data.read_data_from_file('system_scan_log.json')
+if read:
+
+    data.read()
+
+# Create the table 
+Base.metadata.create_all(engine)
     
-    __table_name__ = 'InstanceData'
-
-    malware_id = Column(String, ForeignKey('malware.instance_id'),)
-    data_id = Column(String, ForeignKey('data.data_id'))
-
-    malware = relationship("Malware", back_populates="instances")
-    data = relationship("Data", back_populates="instances")
-
-
-    
-#Session = sessionmaker(bind=engine)
-#session = Session()
-#metadata.create_all(engine)
-
-
-# Command = Table(
-#     'Command', metadata,
-#     Column('command_id', String, primary_key=True),
-#     Column('syntax', String(128)),
-#     Column('status', String(60)),
-#     Column('created_at', DateTime),
-#     Column('executed_at', DateTime)
-# )
-
-# MalwareCommand = Table(
-#     'MalwareCommand', metadata,
-#     Column('instance_id', String, ForeignKey('Malware.instance_id'), primary_key=True),
-#     Column('command_id', String, ForeignKey('Command.command_id'), primary_key=True)
-# )
-
-# Log = Table(
-#     'Log', metadata,
-#     Column('log_id', String, primary_key=True),
-#     Column('created_at', DateTime),
-#     Column('content', String(255))
-# )
-
-# print('enter the attributes of the hacker')
-# name = input('name: ')
-# email = input('email: ')
-# password = input('password: ')
-# id = input('id: ')
-# Hacker_ins = Hacker.insert().values(name=name, email=email,password=password,id=id)
-# print(str(Hacker_ins))
-# session.execute(Hacker_ins)
-# session.commit()
-# result = session.execute(select(Hacker))
-# for row in result:
-#     print(row)
-# result = session.execute(select(Hacker).where(Hacker.c.id == '1'))
-# for row in result:
-#     print(row)
-    
-# try:
-   
-#     session.commit()
-# except Exception as e:
-#     print(f"An error occurred: {e}")
-# session.commit()
-
-# def create():
-#     pass
-
-# def read():
-#     pass
-
-# def update():
-#     pass
-
-# def delete():
-#     pass
 
 

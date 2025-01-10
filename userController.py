@@ -1,6 +1,8 @@
+from flask import jsonify
 from .model import Hacker
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
+from werkzeug.security import check_password_hash
 import os
 import sys
 
@@ -38,5 +40,26 @@ class HackerController:
             session.rollback()
             # Handle any exceptions and return an error message
             return f"Error registering hacker: {e}"
+    
+    def loginController(self, email, password):
+        try:
+            # Query the database for the user
+            hacker = session.query(Hacker).filter_by(email=email).first()
+
+            if hacker:
+                # Check the provided password against the hashed password in the database
+                if check_password_hash(hacker.password, password):
+                    print("login successful")
+                    return jsonify({'success':'login successful', 'hacker':hacker})
+                else:
+                    return jsonify({"error":"Invalid email or  password"})
+            else:
+                return jsonify({"error":"User not found"})
+
         
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return jsonify({f"An error occurred: {e}"})
+
         
+    

