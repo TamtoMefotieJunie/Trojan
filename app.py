@@ -5,7 +5,7 @@ import sys
 from werkzeug.security import check_password_hash
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
-from .model import Hacker, Data
+from .model import Hacker, Data, Malware
 
 import os
 
@@ -65,16 +65,34 @@ def login():
     
     return render_template('Frontend/login.html')
 
-@app.route('/dashboard')
+@app.route('/malware_dashboard')
 def dashboard():
-    return render_template('Frontend/Dashboard.html')
+    malwares = malware_controller.read_malware_records()
+    print(f'malwares from database: {malwares}')
+    if malwares:
+        rows = malwares
+    else:
+        rows = []
+    return render_template('Frontend/Dashboard.html',malwares=rows)
 
-@app.route('/malware')
-def display_data_details():
+# @app.route('/data_details')
+# def display_data_details():
+#     data = Data.read()
+#     if data is None:
+#         data = []
+#     return render_template('Frontend/Malware_details.html', data=data)
+
+@app.route('/malware_details/<instance_id>')
+def display_malware_details(instance_id):
+
     data = Data.read()
     if data is None:
         data = []
-    return render_template('Frontend/Malware_details.html', data=data)
+
+    malware = malware_controller.read_One(instance_id=instance_id)
+    
+    row = malware if malware else []
+    return render_template('Frontend/Malware_details.html', malware=row, data=data)
 
 @app.route('/register_malware', methods=['POST'])
 def register_malware():

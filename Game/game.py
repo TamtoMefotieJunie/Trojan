@@ -8,7 +8,7 @@ BODY_PARTS = 3
 SNAKE_COLOR = "#00FF00"
 FOOD_COLOR = "#FF0000"
 BACKGROUND_COLOR = "#000000"
-DEFAULT_SPEED = 100
+DEFAULT_SPEED = 150
 
 class Snake:
     def __init__(self):
@@ -96,6 +96,7 @@ def game_over():
         fill="red",
         tag="gameover",
     )
+    restart_button = Button(window, text="Restart Game", font=("consolas", 20), command=restart_game)
     restart_button.place(relx=0.5, rely=0.9, anchor=CENTER)
 
 def restart_game():
@@ -110,14 +111,13 @@ def restart_game():
     next_turn()
 
 def set_difficulty(event):
-    global SPEED
     difficulty = difficulty_var.get()
     if difficulty == "Easy":
-        SPEED = 150
+        SPEED = DEFAULT_SPEED
     elif difficulty == "Medium":
-        SPEED = 100
+        SPEED = DEFAULT_SPEED - 50
     elif difficulty == "Hard":
-        SPEED = 50
+        SPEED = DEFAULT_SPEED - 100
 
 window = Tk()
 window.title("Snake Game")

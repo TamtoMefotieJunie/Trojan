@@ -19,18 +19,22 @@
                 </tr>
             </thead>
             <tbody>
+                {% for row in malwares %}
+                    <tr>
+                        <td>{{ row.instance_id }}</td>
+                        <td>{{ row.created_at }}</td>
+                        <td>{{ row.status }}</td>
+                    <td><a href="{{ url_for('display_malware_details', instance_id=row.instance_id) }}">View Details</a></td>
+                    </tr>
+                {% endfor %}
                 <!-- Example rows (replace with dynamic data) -->
-                <tr>
-                    <td>malware_001</td>
-                    <td>2025-01-08</td>
-                    <td>Active</td>
-                    <td><a href="/malware/malware_001">View Details</a></td>
-                </tr>
+                
+
                 <tr>
                     <td>malware_002</td>
                     <td>2025-01-05</td>
                     <td>Inactive</td>
-                    <td><a href="/malware/malware_002">View Details</a></td>
+                    <td><a href="{{ url_for('display_data_details') }}">View Details</a></td>
                 </tr>
             </tbody>
         </table>

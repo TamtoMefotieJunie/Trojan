@@ -2,7 +2,6 @@ from flask import jsonify
 from .model import Data
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
-from werkzeug.security import check_password_hash
 import os
 
 dbPath = os.path.abspath('trojan.db')

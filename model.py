@@ -161,8 +161,35 @@ class Malware(Base):
         session.commit()
         return malware
     
-    def read():
-        pass
+    @classmethod 
+    def read(cls): 
+
+        """Read data""" 
+        
+        try:
+            malware = session.query(Malware).all()  # This returns a list of Data objects
+            if malware:
+                return malware  # Ensure it's a list of Data objects
+            else:
+                return []  # Return an empty list if no data is found
+        except Exception as e:
+            print(f"Error reading malware: {e}")
+            return []  # Return an empty list if an error occurs
+        finally:
+            session.close()
+    
+    def read_one(instance_id):
+        try:
+            malware = session.query(Malware).filter_by(instance_id=instance_id).first()
+            if malware:
+                return malware
+            else:
+                print(f"Malware with instance_id {instance_id} not found.")
+                return None
+        except Exception as e:
+            print(f"Error reading malware: {e}")
+            return None
+
     
     def update():
         pass   
@@ -255,14 +282,11 @@ class Data(Base):
         pass
 
 #lines 237 to 241 are meant for testing Data class
-data = Data()
-read = data.read_data_from_file('system_scan_log.json')
-if read:
+#data = Data()
+#read = data.read_data_from_file('system_scan_log.json')
+#if read:
 
-    data.read()
+#    data.read()
 
 # Create the table 
 Base.metadata.create_all(engine)
-    
-
-
