@@ -1,5 +1,8 @@
 from tkinter import *
 import random
+from tkinter import simpledialog, messagebox  
+
+PASSWORD = "snake123"
 
 GAME_WIDTH = 700
 GAME_HEIGHT = 700
@@ -119,9 +122,21 @@ def set_difficulty(event):
     elif difficulty == "Hard":
         SPEED = 50
 
+def authenticate():
+    password = simpledialog.askstring("Password", "Enter the password to play:", show="*")
+    if password == PASSWORD:
+        return True
+    else:
+        messagebox.showerror("Error", "Incorrect password!")
+        return False
+
 window = Tk()
 window.title("Snake Game")
 window.resizable(False, False)
+
+if not authenticate():
+    window.destroy()
+    exit()
 
 score = 0
 direction = "down"
