@@ -96,6 +96,7 @@ def game_over():
         fill="red",
         tag="gameover",
     )
+
     restart_button = Button(window, text="Restart Game", font=("consolas", 20), command=restart_game)
     restart_button.place(relx=0.5, rely=0.9, anchor=CENTER)
 
