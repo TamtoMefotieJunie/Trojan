@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 import os
 
-dbPath = os.path.abspath('trojan.db')
+dbPath = os.path.abspath('trojan2.db')
 
 print(f"dbPath: {dbPath}")
 

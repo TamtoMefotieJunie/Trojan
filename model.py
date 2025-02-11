@@ -5,7 +5,7 @@ import uuid
 import os
 from datetime import datetime
 
-dbPath = os.path.abspath('trojan.db')
+dbPath = os.path.abspath('trojan2.db')
 
 print(f"dbPath: {dbPath}")
 
@@ -27,33 +27,14 @@ class Hacker(Base):
     def check_password(self, password): 
         return check_password_hash(self.password, password) 
     
-    @staticmethod 
-    def create(name, email, password): 
-
-        """Register a new hacker.""" 
-        try: 
-            password_hash = generate_password_hash(password) # Hash the password for security 
-
-            hacker = Hacker(name=name, email=email, password=password_hash) 
-            Session = sessionmaker(bind=engine) 
-
-            session = Session() 
-            session.add(hacker) 
-            session.commit() 
-
-            print(f'Hacker created: {hacker}') 
-
-            all_hackers = session.query(Hacker).all() 
-
-            print("All Hackers:", [h.__dict__ for h in all_hackers]) 
-
-            return hacker 
-        
-        except Exception as e: 
-            print(f"Error creating hacker: {e}") 
-            return None
-        finally:
-            session.close()
+    @classmethod
+    def create(cls, name, email, password):
+        """Create a new hacker and save it to the database."""
+        hashed_password = generate_password_hash(password)  # Hash the password
+        hacker = cls(name=name, email=email, password=hashed_password)
+        session.add(hacker)
+        session.commit()  # Commit the transaction
+        return hacker
     
     @staticmethod 
     def read(hacker_email): 
@@ -148,6 +129,7 @@ class Malware(Base):
     instance_id = Column(String, primary_key=True,default=lambda:str(uuid.uuid4()))
     created_at = Column(DateTime)
     status = Column(String, default='inactive')
+    commands = relationship("MalwareCommand", back_populates="malware")
 
     instances = relationship(
         "InstanceData", 
@@ -196,6 +178,50 @@ class Malware(Base):
     
     def delete():
         pass
+    
+    
+class MalwareCommand(Base):
+    __tablename__ = 'MalwareCommand'
+
+    command_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    instance_id = Column(String, ForeignKey('Malware.instance_id'), nullable=False)  # Foreign key to Malware
+    command = Column(String, nullable=False)  # Command string (e.g., "activate", "enable")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    malware = relationship("Malware", back_populates="commands")  # Relationship back to Malware
+
+    @classmethod
+    def create_command(cls, instance_id, command):
+        """Create a new command for a malware instance."""
+        new_command = cls(instance_id=instance_id, command=command)
+        session.add(new_command)
+        session.commit()
+        return new_command
+
+    @classmethod
+    def read_commands(cls, instance_id):
+        """Read all commands for a specific malware instance."""
+        try:
+            commands = session.query(cls).filter_by(instance_id=instance_id).all()
+            return commands if commands else []
+        except Exception as e:
+            print(f"Error reading commands: {e}")
+            return []
+
+    @classmethod
+    def delete_command(cls, command_id):
+        """Delete a command by its ID."""
+        try:
+            command = session.query(cls).filter_by(command_id=command_id).first()
+            if command:
+                session.delete(command)
+                session.commit()
+                return {"status": "success", "message": "Command deleted"}
+            else:
+                return {"status": "error", "message": "Command not found"}
+        except Exception as e:
+            print(f"Error deleting command: {e}")
+            return {"status": "error", "message": str(e)}
 
 class Data(Base):
     

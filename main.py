@@ -9,7 +9,7 @@ import sys
 
 def trojan():
 
-    malware_path = "E:\\SE3B\\Advanced Python\\Trojan\\Trojan\\malware.py"
+    malware_path = "C:\\Users\\PAMSTORE\\Desktop\\Trojan\\Trojan\\malware.py"
     
     # Check if the malware script already exists
     if not os.path.exists(malware_path):

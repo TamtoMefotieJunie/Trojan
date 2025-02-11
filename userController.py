@@ -1,15 +1,16 @@
 from flask import jsonify
-from .model import Hacker
+from model import Hacker
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from werkzeug.security import check_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import sys
 
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Initialize the database session
-dbPath = os.path.abspath('trojan.db')
+dbPath = os.path.abspath('trojan2.db')
 
 print(f"dbPath: {dbPath}")
 
@@ -19,27 +20,21 @@ session = Session()
 
 class HackerController:
     def registerController(self, name, email, password):
-        """
-        Registers the given hacker (user) by calling the create method of Hacker.
-        """
-
         try:
+            # Hash the password before saving it
+            hashed_password = generate_password_hash(password)
             
-            # Call the create method of the Hacker class to register the user
-            hacker = Hacker.create(name=name, email=email, password=password)
-        
-            # Add the hacker instance to the session
+            # Create a new Hacker instance
+            hacker = Hacker(name=name, email=email, password=hashed_password)
+            
+            # Add and commit to the database
             session.add(hacker)
-            
-            # Commit the transaction to save the hacker in the database
             session.commit()
             
             return {"status": "success", "message": f"Hacker {name} registered successfully."}
-        
         except Exception as e:
-            session.rollback()
-            # Handle any exceptions and return an error message
-            return f"Error registering hacker: {e}"
+            session.rollback()  # Rollback on error
+            return {"status": "error", "message": f"Error registering hacker: {str(e)}"}
     
     def loginController(self, email, password):
         try:
@@ -49,17 +44,19 @@ class HackerController:
             if hacker:
                 # Check the provided password against the hashed password in the database
                 if check_password_hash(hacker.password, password):
-                    print("login successful")
-                    return jsonify({'success':'login successful', 'hacker':hacker})
+                    print("Login successful")
+                    return {
+                        'success': 'Login successful',
+                        'hacker': {
+                            'id': hacker.id,
+                            'name': hacker.name,
+                            'email': hacker.email
+                        }
+                    }
                 else:
-                    return jsonify({"error":"Invalid email or  password"})
+                    return {"error": "Invalid email or password"}
             else:
-                return jsonify({"error":"User not found"})
-
-        
+                return {"error": "User not found"}
         except Exception as e:
             print(f"An error occurred: {e}")
-            return jsonify({f"An error occurred: {e}"})
-
-        
-    
+            return {"error": str(e)}
