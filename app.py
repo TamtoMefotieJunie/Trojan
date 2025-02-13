@@ -83,7 +83,7 @@ def display_malware_details(instance_id):
     if data is None:
         data = []
 
-    malware = malware_controller.read_One(instance_id=instance_id)
+    malware = malware_controller.read_one(instance_id=instance_id)
     row = malware if malware else []
     return render_template('Frontend/Malware_details.html', malware=row, data=data)
 

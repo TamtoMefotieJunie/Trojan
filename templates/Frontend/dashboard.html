@@ -1,204 +1,260 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Malware Dashboard</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
-    <style>
-        /* General Reset */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Arial', sans-serif;
-}
+   <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malware Dashboard</title>
+      <link
+         rel="stylesheet"
+         type="text/css"
+         href="{{ url_for('static', filename='css/styles.css') }}"
+      />
+      <style>
+         /* General Reset */
+         * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+         }
 
-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    background-color: #f4f4f9;
-}
+         body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f4f4f9;
+         }
 
-.container {
-    width: 100%;
-    max-width: 400px;
-    background: #ffffff;
-    padding: 2rem;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-.container2 {
-    width: 90%;
-    max-width: 1200px;
-    margin: 2rem auto;
-    padding: 2rem;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
+         .container {
+            width: 100%;
+            max-width: 400px;
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+         }
+         .container2 {
+            width: 90%;
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+         }
 
-h2 {
-    margin-bottom: 1.5rem;
-    color: #333;
-    text-align: center;
-}
+         h2 {
+            margin-bottom: 1.5rem;
+            color: #333;
+            text-align: center;
+         }
 
-.form-container {
-    margin-bottom: 2rem;
-}
+         .form-container {
+            margin-bottom: 2rem;
+         }
 
-.input-group {
-    margin-bottom: 1.2rem;
-}
+         .input-group {
+            margin-bottom: 1.2rem;
+         }
 
-.input-group label {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-    color: #555;
-}
+         .input-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #555;
+         }
 
-.input-group input {
-    width: 100%;
-    padding: 0.8rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    outline: none;
-    transition: border-color 0.3s;
-}
+         .input-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            outline: none;
+            transition: border-color 0.3s;
+         }
 
-.input-group input:focus {
-    border-color: #007bff;
-}
+         .input-group input:focus {
+            border-color: #007bff;
+         }
 
-.btn {
-    width: 100%;
-    padding: 0.8rem;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background-color 0.3s;
-}
+         .btn {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+         }
 
-.btn:hover {
-    background-color: #0056b3;
-}
+         .btn:hover {
+            background-color: #0056b3;
+         }
 
-p {
-    margin-top: 1rem;
-    text-align: center;
-    color: #777;
-}
+         p {
+            margin-top: 1rem;
+            text-align: center;
+            color: #777;
+         }
 
-p a {
-    color: #007bff;
-    text-decoration: none;
-    transition: color 0.3s;
-}
+         p a {
+            color: #007bff;
+            text-decoration: none;
+            transition: color 0.3s;
+         }
 
-p a:hover {
-    color: #0056b3;
-}
-h1 {
-    margin-bottom: 1.5rem;
-    color: #333;
-    text-align: center;
-}
+         p a:hover {
+            color: #0056b3;
+         }
+         h1 {
+            margin-bottom: 1.5rem;
+            color: #333;
+            text-align: center;
+         }
 
-h3, h4 {
-    color: #555;
-}
+         h3,
+         h4 {
+            color: #555;
+         }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
-}
+         table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+         }
 
-table th, table td {
-    border: 1px solid #ddd;
-    padding: 0.8rem;
-    text-align: left;
-}
+         table th,
+         table td {
+            border: 1px solid #ddd;
+            padding: 0.8rem;
+            text-align: left;
+         }
 
-table th {
-    background-color: #007bff;
-    color: white;
-    font-weight: bold;
-}
+         table th {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+         }
 
-table tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
+         table tr:nth-child(even) {
+            background-color: #f9f9f9;
+         }
 
-table tr:hover {
-    background-color: #f1f1f1;
-}
+         table tr:hover {
+            background-color: #f1f1f1;
+         }
 
-table td a {
-    color: #007bff;
-    text-decoration: none;
-}
+         table td a {
+            color: #007bff;
+            text-decoration: none;
+         }
 
-table td a:hover {
-    text-decoration: underline;
-}
-button {
-    padding: 8px 12px;
-    margin: 0 5px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    background-color: #007bff;
-    color: white;
-    transition: background-color 0.3s;
-}
+         table td a:hover {
+            text-decoration: underline;
+         }
+         button {
+            padding: 8px 12px;
+            margin: 0 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            transition: background-color 0.3s;
+         }
 
-button:hover {
-    background-color: #0056b3;
-}
-    </style>
-</head>
-<body>
-    <div class="container2">
-        <h1>Malware Dashboard</h1>
-        <table>
+         button:hover {
+            background-color: #0056b3;
+         }
+      </style>
+   </head>
+   <body>
+      <div class="container2">
+         <h1>Malware Dashboard</h1>
+         <p id="status">Status: Inactive</p>
+         <table>
             <thead>
-                <tr>
-                    <th>Instance ID</th>
-                    <th>Created At</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
+               <tr>
+                  <th>Instance ID</th>
+                  <th>Created At</th>
+                  <th>Status</th>
+                  <th>Action</th>
+               </tr>
             </thead>
             <tbody>
-                {% for row in malwares %}
-                    <tr>
-                        <td>{{ row.instance_id }}</td>
-                        <td>{{ row.created_at }}</td>
-                        <td>{{ row.status }}</td>
-                        <td>
-                            <form action="{{ url_for('activate_malware', instance_id=row.instance_id) }}" method="post" style="display:inline;">
-                                <button type="submit">Activate</button>
-                            </form>
-                            <form action="{{ url_for('enable_malware', instance_id=row.instance_id) }}" method="post" style="display:inline;">
-                                <button type="submit">Enable</button>
-                            </form>
-                            <form action="{{ url_for('disable_malware', instance_id=row.instance_id) }}" method="post" style="display:inline;">
-                                <button type="submit">Disable</button>
-                            </form>
-                            <a href="{{ url_for('display_malware_details', instance_id=row.instance_id) }}">View Details</a>
-                        </td>
-                    </tr>
-                {% endfor %}
+               {% for row in malwares %}
+               <tr>
+                  <td>{{ row.instance_id }}</td>
+                  <td>{{ row.created_at }}</td>
+                  <td>{{ row.status }}</td>
+                  <td>
+                     <form
+                        action="{{ url_for('activate_malware', instance_id=row.instance_id) }}"
+                        method="post"
+                        style="display: inline"
+                     >
+                        <button type="submit">Activate</button>
+                     </form>
+                     <form
+                        action="{{ url_for('enable_malware', instance_id=row.instance_id) }}"
+                        method="post"
+                        style="display: inline"
+                     >
+                        <button type="submit">Enable</button>
+                     </form>
+                     <form
+                        action="{{ url_for('disable_malware', instance_id=row.instance_id) }}"
+                        method="post"
+                        style="display: inline"
+                     >
+                        <button type="submit">Disable</button>
+                     </form>
+                     <a
+                        href="{{ url_for('display_malware_details', instance_id=row.instance_id) }}"
+                        >View Details</a
+                     >
+                  </td>
+               </tr>
+               {% endfor %}
             </tbody>
-        </table>
-    </div>
-</body>
+         </table>
+      </div>
+      <button id="activate">Activate</button>
+      <button id="enable">Enable</button>
+      <button id="disable">Disable</button>
+      <script>
+         function updateStatus() {
+            fetch('/status')
+               .then((response) => response.json())
+               .then((data) => {
+                  document.getElementById('status').innerText = `Status: ${
+                     data.status.charAt(0).toUpperCase() + data.status.slice(1)
+                  }`;
+               });
+         }
+
+         document
+            .getElementById('activate')
+            .addEventListener('click', function () {
+               fetch('/activate', { method: 'POST' }).then(updateStatus);
+            });
+
+         document
+            .getElementById('enable')
+            .addEventListener('click', function () {
+               fetch('/enable', { method: 'POST' }).then(updateStatus);
+            });
+
+         document
+            .getElementById('disable')
+            .addEventListener('click', function () {
+               fetch('/disable', { method: 'POST' }).then(updateStatus);
+            });
+
+         updateStatus();
+      </script>
+   </body>
 </html>

